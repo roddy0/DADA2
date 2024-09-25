@@ -9,6 +9,9 @@ library(dada2); packageVersion("dada2")
 In this line we indicate rstudio that we want to work with the external package DADA2
 
 ```{r}
-
+path <- "/home/rstudio/DADA2/MiSeq_SOP"
+list.files(path)
 ```
+We named the path to specify a folder where the files that you want to list are located
+The list.files() function is to return a vector containing all the files names that are in our path
 
