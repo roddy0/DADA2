@@ -14,3 +14,16 @@ list.files(path)
 #We named the path to specify a folder where the files that you want to list are located
 #The list.files() function is to return a vector containing all the files names that are in our path
 ```
+
+```{r}
+fnFs <- sort(list.files(path, pattern="_R1_001.fastq", full.names = TRUE))
+
+fnRs <- sort(list.files(path, pattern="_R2_001.fastq", full.names = TRUE))
+sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1) #Extract sample names, assuming filenames have format: SAMPLENAME_XXX.fastq
+```
+
+#We use the list.files() function to find all files within the "path" that have the pattern "R1_001.fastq" in their name. The full.names = TRUE argument ensures that the full path to each file is included in the returned vector. The result is stored in the variable fnFs
+#This is extracting sample names: We use the sapply() function to apply the strsplit() function to each element in the fnFs vector. strsplit() splits each file name based on the underscore character. The first element of each split is extracted using [, 1], and the resulting vector of sample names is stored in the variable sample.names.
+
+#The reason why we've only applied sapply(strsplit(basename(fnFs), "_"),[, 1) to fnFs and not to fnRs is because we're assuming that the sample names are consistent between the R1 and R2 reads.
+#sapply(...,[, 1): This applies the function [, which extracts the first element of each vector, to each element in the result of the strsplit operation.
