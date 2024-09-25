@@ -15,6 +15,7 @@ list.files(path)
 #The list.files() function is to return a vector containing all the files names that are in our path
 ```
 
+#One file represent one sample with its respective primer used. In one files more than one sequences (reads) will be present but of the same length but of different quality. Some read will be unique while some reads will be variances or sequencing errors.
 ```{r}
 fnFs <- sort(list.files(path, pattern="_R1_001.fastq", full.names = TRUE))
 
@@ -27,3 +28,63 @@ sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1) #Extract sample na
 
 #The reason why we've only applied sapply(strsplit(basename(fnFs), "_"),[, 1) to fnFs and not to fnRs is because we're assuming that the sample names are consistent between the R1 and R2 reads.
 #sapply(...,[, 1): This applies the function [, which extracts the first element of each vector, to each element in the result of the strsplit operation.
+
+```{r}
+#To inspect Inspect read (forward and reverse) quality profiles
+plotQualityProfile(fnFs[1:2])
+plotQualityProfile(fnRs[1:2])
+
+#[1:2] means sample. We can view all the samples quality profile as well
+
+```
+
+#Reverse reads are of significantly worse quality. This isn’t too worrisome, as DADA2 incorporates quality information into its error model which makes the algorithm robust to lower quality sequence, but trimming as the average qualities crash will improve the algorithm’s sensitivity to rare sequence variants. 
+
+#Based on these profiles, we will truncate the reverse reads at position 160 where the quality distribution crashes.
+#Reads must still overlap after truncation in order to merge them later
+
+
+```{r}
+#Filter and trim
+#Assign the filenames for the filtered fastq.gz files.
+filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
+filtRs <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.gz")) #Place filtered files in filtered/subdirectory
+names(filtFs) <- sample.names
+names(filtRs) <- sample.names
+```
+```{r}
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(240,160),
+              maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
+              compress=TRUE, multithread=FALSE)
+head(out)
+
+#The filterAndTrim() function from the DADA2 package is being used to filter and trim the fastq files. This step removes low-quality reads and trims the reads to a specific position.
+
+#reads.in: The number of reads in the original file.
+#reads.out: The number of reads that passed the filtering and trimming steps.
+
+
+#The out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(240,160)) line in the DADA2 package is used to filter and trim paired-end fastq files. Here's a breakdown of the arguments:
+
+#fnFs: A vector of file names for the forward reads.
+#filtFs: A vector of file names for the filtered forward reads.
+#fnRs: A vector of file names for the reverse reads.
+#filtRs: A vector of file names for the filtered reverse reads.
+#truncLen: A vector of two integers specifying the truncation lengths for the forward and reverse reads, respectively. In this case, the forward reads will be truncated to 240 base pairs and the reverse reads will be truncated to 160 base pairs.
+
+#The filterAndTrim() function performs the following steps: 1)Filters reads: It removes low-quality reads based on their quality scores. 2)Trims reads: It trims the reads to the specified truncation lengths. 3) Writes filtered reads: It writes the filtered reads to the files specified in filtFs and filtRs.
+```
+
+#Learn the Error Rates
+
+#Error raterefers to the estimated rate at which sequencing errors occur in the raw sequencing data. These errors can arise from various factors, such as instrument noise, chemical reactions, and sample preparation issues.
+
+```{r}
+errF <- learnErrors(filtFs, multithread=TRUE)
+#The learnErrors() function estimates the error rates for each base position in the filtered reads. This information is used by DADA2 to denoise the data and assign reads to OTUs.
+#multithread=TRUE: This argument specifies that the function should use multiple threads to speed up the computation.
+```
+```{r}
+errR <- learnErrors(filtRs, multithread=TRUE)
+```
+
