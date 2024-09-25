@@ -4,6 +4,11 @@ output: github_document
 ---
 
 ```{r}
-plot(cars)
+library(dada2); packageVersion("dada2")
+```
+In this line we indicate rstudio that we want to work with the external package DADA2
+
+```{r}
+
 ```
 
