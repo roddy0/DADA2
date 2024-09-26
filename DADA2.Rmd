@@ -185,3 +185,21 @@ head(track)
 
 
 #Assign taxonomy
+#The DADA2 package provides a native implementation of the naive Bayesian classifier method for this purpose. The assignTaxonomy function takes as input a set of sequences to be classified and a training set of reference sequences with known taxonomy, and outputs taxonomic assignments with at least minBoot bootstrap confidence.
+#We maintain formatted training fastas for the RDP training set, GreenGenes clustered at 97% identity, and the Silva reference database, and additional trainings fastas suitable for protists and certain specific environments have been contributed. For fungal taxonomy, the General Fasta release files from the UNITE ITS database can be used as is.
+#To follow along, download the silva_nr_v132_train_set.fa.gz file, and place it in the directory with the fastq files.
+
+```{r}
+taxa <- assignTaxonomy(seqtab.nochim, "/home/rstudio/DADA2/silva_nr_v132_train_set.fa.gz?download=1", multithread=TRUE)
+```
+
+
+#inspect the taxonomic assignments:
+```{r}
+taxa.print <- taxa # Removing sequence rownames for display only
+rownames(taxa.print) <- NULL
+head(taxa.print)
+```
+#nsurprisingly, the Bacteroidetes are well represented among the most abundant taxa in these fecal samples. Few species assignments were made, both because it is often not possible to make unambiguous species assignments from subsegments of the 16S gene, and because there is surprisingly little coverage of the indigenous mouse gut microbiota in reference databases.
+
+
