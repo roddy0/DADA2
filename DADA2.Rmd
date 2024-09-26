@@ -86,5 +86,24 @@ errF <- learnErrors(filtFs, multithread=TRUE)
 ```
 ```{r}
 errR <- learnErrors(filtRs, multithread=TRUE)
+# Following this analysis we obtain in the environment next to the errR vector "list of 3". The "List of 3" in the context of the DADA2 refers to the three main output objects created during the error rate learning process: 1) errR: This object contains the estimated error rates for each base position in the filtered reads. It is a matrix where each row corresponds to a base position and each column corresponds to a different nucleotide (A, C, G, or T). The values in the matrix represent the probability of a sequencing error occurring at that specific base position. 2) filts: This object is a character vector containing the file paths of the filtered reads. These files are used as input for subsequent steps in the DADA2 pipeline. 3) fnRs: This object is a character vector containing the file paths of the reverse reads. These files are used in conjunction with the forward reads (stored in filts) for paired-end sequencing data. These three objects are essential for the denoising and OTU assignment steps in the DADA2 pipeline, as they provide the necessary information about the sequencing error rates and the filtered read data.
+```
+```{r}
+plotErrors(errF, nominalQ=TRUE) #to visualize the estimated error rates
 ```
 
+#Sample Inference Analysis
+```{r}
+dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
+dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
+
+#Ssample inference in DADA2 refers to the process of analyzing sequence data to identify and quantify unique biological sequences (OTUs or ASVs) within a sample. It's a crucial step in understanding the microbial diversity present in a given environment.
+
+#Sample ID: Each row represents a different sample.
+#Reads: The total number of sequencing reads obtained for that sample.
+#Unique sequences: The number of distinct DNA sequences identified within the sample.
+#This information provides a basic overview of the sequencing depth and diversity observed in each sample.
+
+#The DADA2 uses a statistical model to group similar sequences together, assuming that differences between sequences are due to sequencing errors rather than biological variation. This process helps to reduce the number of unique sequences and makes it easier to identify and analyze the dominant microbial populations in the sample. In summary, sample inference in DADA2 is essential for understanding the microbial composition of a sample and for making inferences about the ecological processes occurring within that environment.
+```
+#The results obtained mean that for each sample (example sample 1, forward) there are 7113 reads (sequences) in which 1979 are unique sequences (that is occur only once)
