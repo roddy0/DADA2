@@ -134,7 +134,51 @@ mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE) #Paired read
 # Inspect the merger data.frame from the first sample
 head(mergers[[1]])
 ```
+
+#Construct sequence table
+#Construction an amplicon sequence variant table (ASV) table, a higher-resolution version of the OTU table produced by traditional methods.
 ```{r}
-
+seqtab <- makeSequenceTable(mergers)
+dim(seqtab)
 ```
+```{r}
+# Inspect distribution of sequence lengths
+table(nchar(getSequences(seqtab)))
+```
+#The sequence table is a matrix with rows corresponding to (and named by) the samples, and columns corresponding to (and named by) the sequence variants. This table contains 293 ASVs, and the lengths of our merged sequences all fall within the expected range for this V4 amplicon
 
+#The sequence table summarizes the identified unique sequences (ASVs) and their abundance in the sample. It provides a fundamental overview of the microbial diversity and composition.
+
+
+#Remove chimeras
+#The core dada method corrects substitution and indel errors, but chimeras remain. Fortunately, the accuracy of sequence variants after denoising makes identifying chimeric ASVs simpler. Chimeric sequences are identified if they can be exactly reconstructed by combining a left-segment and a right-segment from two more abundant “parent” sequences.
+```{r}
+seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
+dim(seqtab.nochim)
+```
+#The frequency of chimeric sequences 
+#The frequency of chimeric sequences varies substantially from dataset to dataset, and depends on on factors including experimental procedures and sample complexity.
+```{r}
+sum(seqtab.nochim)/sum(seqtab)
+```
+#Here chimeras make up about 21% of the merged sequence variants, but when account for the abundances of those variants we see they account for only about 4% of the merged sequence reads.
+
+#Cautions : Most of your reads should remain after chimera removal (it is not uncommon for a majority of sequence variants to be removed though). If most of your reads were removed as chimeric, upstream processing may need to be revisited. In almost all cases this is caused by primer sequences with ambiguous nucleotides that were not removed prior to beginning the DADA2 pipeline.
+
+
+#Track reads through the pipeline
+#look at the number of reads that made it through each step in the pipeline
+```{r}
+getN <- function(x) sum(getUniques(x))
+track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
+# If processing a single sample, remove the sapply calls: e.g. replace sapply(dadaFs, getN) with getN(dadaFs)
+colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
+rownames(track) <- sample.names
+head(track)
+```
+#Input: The total number of reads originally present in the sample before any processing.
+#Filtered: The number of reads remaining after filtering out low-quality reads based on quality scores.
+#Denoisedf: The number of reads remaining after denoising the forward reads (using the estimated error rates).
+#Denoisedr: The number of reads remaining after denoising the reverse reads (using the estimated error rates).
+#Merged: The number of reads that were successfully merged from paired-end sequencing data (if applicable).
+#Nonchim: The number of reads that were not assigned to any chimeric sequence (potential artifacts resulting from PCR errors).
