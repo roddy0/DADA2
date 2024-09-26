@@ -6,7 +6,9 @@ output: github_document
 ```{r}
 library(dada2); packageVersion("dada2")
 ```
-In this line we indicate rstudio that we want to work with the external package DADA2
+#DADA2 search for sequencing errors and correct them so that to reduce the number of unique sequences (genetic variance) obtained
+
+#In this line we indicate rstudio that we want to work with the external package DADA2
 
 ```{r}
 path <- "/home/rstudio/DADA2/MiSeq_SOP"
@@ -107,3 +109,32 @@ dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
 #The DADA2 uses a statistical model to group similar sequences together, assuming that differences between sequences are due to sequencing errors rather than biological variation. This process helps to reduce the number of unique sequences and makes it easier to identify and analyze the dominant microbial populations in the sample. In summary, sample inference in DADA2 is essential for understanding the microbial composition of a sample and for making inferences about the ecological processes occurring within that environment.
 ```
 #The results obtained mean that for each sample (example sample 1, forward) there are 7113 reads (sequences) in which 1979 are unique sequences (that is occur only once)
+#The more a species will be present in the sample the more its sequence will be present in the sequencing results. Variance of this species will be considered as other sequences and will form their own OTU. 
+
+
+#Inspecting the returned dada-class object:
+```{r}
+dadaFs[[1]]
+```
+# 1979 input unique sequences: Refers to the total number of unique DNA sequences that were initially identified in the sample after filtering and trimming.
+#128 sequence variants: DADA2 grouped these unique sequences into 128 clusters based on their similarity and the estimated error rates. Each cluster represents a unique biological sequence.
+
+
+```{r}
+help("dada-class")
+```
+
+
+#Merge paired reads
+#Merge the forward and reverse reads together to obtain the full denoised sequences (constructing the merged “contig” sequences). By default, merged sequences are only output if the forward and reverse reads overlap by at least 12 bases, and are identical to each other in the overlap region (these conditions can be changed via function arguments).
+
+
+```{r}
+mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE) #Paired reads that did not exactly overlap were removed by mergePairs, further reducing spurious output.
+# Inspect the merger data.frame from the first sample
+head(mergers[[1]])
+```
+```{r}
+
+```
+
