@@ -182,3 +182,6 @@ head(track)
 #Denoisedr: The number of reads remaining after denoising the reverse reads (using the estimated error rates).
 #Merged: The number of reads that were successfully merged from paired-end sequencing data (if applicable).
 #Nonchim: The number of reads that were not assigned to any chimeric sequence (potential artifacts resulting from PCR errors).
+
+
+#Assign taxonomy
