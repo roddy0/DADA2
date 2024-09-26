@@ -202,4 +202,19 @@ head(taxa.print)
 ```
 #nsurprisingly, the Bacteroidetes are well represented among the most abundant taxa in these fecal samples. Few species assignments were made, both because it is often not possible to make unambiguous species assignments from subsegments of the 16S gene, and because there is surprisingly little coverage of the indigenous mouse gut microbiota in reference databases.
 
+```{r}
+unqs.mock <- seqtab.nochim["Mock",]
+unqs.mock <- sort(unqs.mock[unqs.mock>0], decreasing=TRUE) # Drop ASVs absent in the Mock
+cat("DADA2 inferred", length(unqs.mock), "sample sequences present in the Mock community.\n")
+```
+# A mock community is a synthetic mixture of known strains of bacteria. It serves as a controlled experiment because the exact composition is known, allowing for direct comparison between the inferred results and the ground truth. By comparing the inferred sequence variants from the mock community to the expected composition, we can evaluate how well DADA2 performs in terms of identifying and quantifying different bacterial species.
 
+#The evaluation aims to determine the accuracy of DADA2 in identifying the correct sequence variants and their abundances. Error rate calculation: By comparing the inferred results to the known composition of the mock community, the error rate of the DADA2 pipeline can be calculated. The results obtained from the evaluation can be compared to those of other microbiome analysis methods to assess DADA2's performance relative to other tools.
+
+
+```{r}
+mock.ref <- getSequences(file.path(path, "HMP_MOCK.v35.fasta"))
+match.ref <- sum(sapply(names(unqs.mock), function(x) any(grepl(x, mock.ref))))
+cat("Of those,", sum(match.ref), "were exact matches to the expected reference sequences.\n")
+```
+#This mock community contained 20 bacterial strains. DADA2 identified 20 ASVs all of which exactly match the reference genomes of the expected community members. The residual error rate after the DADA2 pipeline for this sample is 0%.
