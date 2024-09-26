@@ -261,6 +261,47 @@ taxa_names(ps) <- paste0("ASV", seq(ntaxa(ps)))
 ps
 ```
 #end of data preparation for phyloseq analysis. Now we proceed with the phyloseq analysis.
+
+#Visualize alpha-diversity:
 ```{r}
 plot_richness(ps, x="Day", measures=c("Shannon", "Simpson"), color="When")
 ```
+#the y-axis represents the alpha diversity index
+#Observation : No obvious systematic difference in alpha-diversity between early and late samples.
+#Based on the plots, there seems to be no obvious systematic difference in alpha diversity between the early and late samples. This suggests that the microbial communities in the samples are similarly diverse, regardless of the time point.
+
+#Alpha diversity is a measure of the diversity of species within a given community or habitat. It reflects the richness (the number of different species) and evenness (the relative abundance of each species) within a sample.
+#Two common alpha diversity indices are: 1) Shannon index: Measures both richness and evenness. A higher Shannon index indicates a more diverse community.	2) Simpson index: Primarily measures richness. A higher Simpson index indicates a more diverse community, but it is less sensitive to evenness than the Shannon index.
+
+
+#Ordinate
+
+#Ordination is a statistical technique used to visualize the relationships between samples or objects based on their similarity or dissimilarity. It is used in ecology to understand the structure and patterns within a dataset. For microbiome analysis, ordination is used to visualize the differences between microbial communities. By plotting the samples in a low-dimensional space, ordination can help identify groups of samples with similar microbial compositions and reveal the underlying factors driving these differences.
+
+```{r}
+# Transform data to proportions as appropriate for Bray-Curtis distances
+ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
+ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
+```
+
+```{r}
+plot_ordination(ps.prop, ord.nmds.bray, color="When", title="Bray NMDS")
+```
+#Ordination picks out a clear separation between the early and late samples.
+
+#The plot is a Bray-Curtis NMDS plot, which visualizes the relationships between microbial communities based on their similarity or dissimilarity.
+#Each point: Represents a microbial community sample.
+#Position of points: The closer two points are on the plot, the more similar their microbial compositions are.
+#Clustering: If points are clustered together, it indicates that those samples share similar microbial characteristics.
+#Separation: In this case, the early and late samples are clearly separated, suggesting that they have distinct microbial profiles.
+
+
+
+#Bar plot:
+```{r}
+top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
+ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+ps.top20 <- prune_taxa(top20, ps.top20)
+plot_bar(ps.top20, x="Day", fill="Family") + facet_wrap(~When, scales="free_x")
+```
+#Result: Nothing glaringly obvious jumps out from the taxonomic distribution of the top 20 sequences to explain the early-late differentiation.
